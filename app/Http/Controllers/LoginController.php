@@ -3,98 +3,113 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash; 
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use App\Models\Login;
-use Exception;
+
 class LoginController extends Controller
 {
     public function lihatLogin()
     {
         return view('datadims.login');
     }
-    // tempat proses login
+
     public function Login(Request $request)
     {
+        try {
 
-    try{
+            // 0. VALIDASI
+            $request->validate([
+                'username' => 'required|string',
+                'password' => 'required|string',
+            ]);
+
+            $user = Login::where('username', $request->username)->first();
+
+            
+
+            // 1. CEK BLOKIR // ambil statusblokir di privat method(function)
+          if ($this->statusblokir($user)) {
+                return back()->withErrors([
+                    'username' => 'Akun diblokir sekarang pada tanggal' . $user->blocked_until,
+                ]);
+            
+            
+
+           // 2. PASSWORD  DAN USERNAME SALAH MASUK KE SINI
+          }else if (!$user || ! Hash::check($request->password, $user->password)) {
 
 
-        // validasi username password //
-        $request->validate([
-        'username' => 'required|string',
-        'password' => 'required|string',
-    ]);
-
-    $username = $request->username;
-    $password = $request->password;
-
-    $user = Login::where('username', $username)->first();
-
-    
-
-    if ($user->is_locked && $user->blocked_until && now()->lessThan($user->blocked_until)) {
-        return back()->withErrors([
-            'username' => 'Akun diblokir sementara karena terlalu banyak percobaan login.'
-        ]);
-    }
-
-    if (Hash::check($password, $user->password)) {
-
-        Login::where('username', $username)->update([
-            'failed_attempts' => 0,
-            'is_locked' => false,
-            'blocked_until' => null,
-        ]);
-
-        //  GANTI INI
-        $request->session()->put('username', $username);
+            if($user){
+              $this->sistemblok($user);
+              return;
+            }else{
+               return back()->withErrors([
+                    'password' => 'Password salah. Percobaan ke-'
+                ]);
+              }
+              
+        }else{
+         //3. PASSWORD BENAR MASUK SINI //
+        $this->berhasillogin($user);
+        $request->session()->put('username', $user->username);
 
         return redirect('/datadims/dasboard');
+        }
+        } catch (\Exception $e) {
+
+            Log::error('Error saat login: ' . $e->getMessage());
+
+            return back()->withErrors([
+                'username' => 'Terjadi kesalahan sistem.'
+            ]);
+        }
+    }
+    
+    private function statusblokir($user)
+    {
+      return $user && $user->blocked_until && now()->lessThan($user->blocked_until);
     }
 
-    // password salah
-    $failed = $user->failed_attempts + 1;
-    $is_locked = $failed >= 3 ? true : false;
-    $blocked_until = $is_locked ? now()->addHour() : null;
-
-    Login::where('username', $username)->update([
-        'failed_attempts' => $failed,
-        'is_locked' => $is_locked,
-        'blocked_until' => $blocked_until,
-    ]);
-
-    return back()->withErrors([
-        'password' => 'Password salah.'
-    ]);
-
+    private function berhasillogin($user)
+    {
+        $user->failed_attempts = 0;
+        $user->blocked_until = null;
+        $user->is_locked = false;
+        $user->save();
+    }
      
-   }catch(\Exception $e){
-     if($blocked_until){
-        Log::error('Gagal memblok akun nya: '.$e->getMessage());
-        Log::info('berhasil memblok akun' .$e->getMessage());
-    }
-     if (!$user) {
-        return back()->withErrors([
-            'username' => 'Username tidak ditemukan.'
-        ]);
-        Log::error('username bermasalah '.$e->getMessage());
-    }
+    private function sistemblok($user)
+    {
+        $user->failed_attempts += 1;
+        Log::info('Failed attempts sekarang: ' . $user->failed_attempts);
+             
+        if ($user->failed_attempts >= 3) {
+           $user->is_locked = true;
+           $user->blocked_until = now()->addMinutes(50);
+           Log::warning('User diblokir: ' . $user->username);
 
-    if (!$password) {
-        Log::error('password bermasalah '.$e->getMessage());
+           }
+        $user->save();
     }
 
-    }
-
-  }
-
-    // tempat logout 
     public function Logout(Request $request)
     {
+        $user = $request->session()->get('username');
+        // pengecekan succes atau gagal
+         if($user){
+          Log::info('logout succes ' . $user);
+        }else{
+          Log::info('logout gagal ' . $user);
+        }
         $request->session()->forget('username');
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         return redirect('/datadims/login');
+        
+   
+        
+        
     }
 }

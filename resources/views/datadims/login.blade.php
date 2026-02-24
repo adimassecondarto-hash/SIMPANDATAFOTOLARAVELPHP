@@ -146,10 +146,10 @@ function togglePassword() {
     const eyeIcon = document.querySelector('.eye');
     if(passwordInput.type === "password"){
         passwordInput.type = "text";
-        eyeIcon.textContent = "HAYOO KEPO YAH"; // berubah ikon saat show
+        eyeIcon.textContent = "👁"; // berubah ikon saat show
     } else {
         passwordInput.type = "password";
-        eyeIcon.textContent = "👁"; // kembali ke ikon awal
+        eyeIcon.textContent = "❌"; // kembali ke ikon awal
     }
 }
 </script>

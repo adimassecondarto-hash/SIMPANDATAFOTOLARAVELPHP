@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard</title>
+<title>Dashboard Dua</title>
+<!-- Material Design Iconic Font -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/material-design-iconic-font@2.2.0/dist/css/material-design-iconic-font.min.css">
 
 <style>
 *{
@@ -90,25 +92,25 @@
 }
 
 .sidebar li a {
-    display: block;
+    display: flex;
+    align-items: center;
     width: 100%;
     height: 100%;
     padding: 20px 10px; /* klik area lebih luas */
     color: inherit;
     text-decoration: none;
+    gap: 10px; /* jarak icon dan teks */
 }
 
 .content {
     flex: 1;
     background: #f2f2f2;
     padding: 40px;
-    overflow-y: auto; /* pastikan scroll muncul vertikal */
+    overflow-y: auto;
     overflow-x: hidden;
     margin-left:220px;
     margin-top: 60px;
     height:calc(100vh - 60px);
-    overflow-y:auto;
-    padding: 40px;
 }
 
 .box{
@@ -170,7 +172,6 @@
 .upload-title{font-weight:bold;}
 
 /* ================= TABEL ================= */
-
 .data-table{
     width:100%;
     border-collapse:collapse;
@@ -179,26 +180,21 @@
 
 .data-table th,
 .data-table td{
-    border:2px solid #999;
+    border:2px solid #000000ff;
 }
 
 .data-table th{
-    background:#c0c0c0;
+    background:#00fbff;
     text-align:center;
     font-weight:bold;
     padding:20px;
 }
 
-.data-table td:first-child{
+.data-table td:first-child,
+.data-table td:last-child{
     padding:40px;
     width:50%;
     vertical-align:top;
-}
-
-.data-table td:last-child{
-    width:50%;
-    height:300px;
-    padding:0;
 }
 
 .data-table img{
@@ -218,26 +214,15 @@
 </style>
 
 <script>
-function showList(listNumber) {
-    document.querySelectorAll('.list-content')
-        .forEach(div => div.style.display = 'none');
-
-    document.getElementById('list'+listNumber)
-        .style.display = 'block';
-
-    document.querySelectorAll('.sidebar li')
-        .forEach(li => li.classList.remove('active'));
-
-    document.getElementById('sidebar-list'+listNumber)
-        .classList.add('active');
-
-    document.querySelectorAll('.sidebar li a').forEach(a => {
-    a.addEventListener('click', function() {
-        document.querySelectorAll('.sidebar li').forEach(li => li.classList.remove('active'));
-        this.parentElement.classList.add('active');
+document.addEventListener('DOMContentLoaded', function() {
+    // klik sidebar aktif
+    document.querySelectorAll('.sidebar li').forEach(li => {
+        li.addEventListener('click', function() {
+            document.querySelectorAll('.sidebar li').forEach(el => el.classList.remove('active'));
+            this.classList.add('active');
+        });
     });
-});    
-}
+});
 </script>
 
 </head>
@@ -260,25 +245,25 @@ function showList(listNumber) {
 <div class="sidebar">
    <ul>
         <li class="{{ Route::currentRouteName() == 'dasboard' ? 'active' : '' }}">
-            <a href="{{ route('dasboard') }}" 
-               style="color:inherit;text-decoration:none;display:block;">
-               nyimpen kartu hasil studi
+            <a href="{{ route('dasboard') }}">
+                <i class="zmdi zmdi-book"></i> <!-- Icon buku -->
+                nyimpen kartu hasil studi
             </a>
         </li>
 
         <li class="{{ Route::currentRouteName() == 'dasboarddua' ? 'active' : '' }}">
-            <a href="{{ route('dasboarddua') }}" 
-               style="color:inherit;text-decoration:none;display:block;">
-               nyimpen rekapstudi dan kartuujian
+            <a href="{{ route('dasboarddua') }}">
+                <i class="zmdi zmdi-view-list"></i> <!-- Icon list -->
+                nyimpen rekapstudi dan kartuujian
             </a>
         </li>
     </ul>
 </div>
 
-<!-- ================= TAMPILAN INPUT GAMBAR ================= -->
+<!-- ================= CONTENT ================= -->
 <div class="content">
 
-<div id="list1" class="list-content" style="display:block;">
+<div id="list2" class="list-content" style="display:block;">
 <div class="box">
 
 <div class="top-form">
@@ -294,7 +279,7 @@ function showList(listNumber) {
             <div class="left-form">
                  <div class="upload-title">upload foto ujian</div>
                  <input type="file" name="foto_kartu_ujian" accept=".pdf" required>
-                <button type="submit" class="ok-button">SIMPAN</button>
+                 <button type="submit" class="ok-button">SIMPAN</button>
             </div>
 
             <div class="upload-form">
@@ -306,8 +291,6 @@ function showList(listNumber) {
     </form>
 </div>
 
-
-<!----- PENAMAAN TABEL ----->
 <table class="data-table">
     <thead>
         <tr>
@@ -316,14 +299,13 @@ function showList(listNumber) {
         </tr>
     </thead>
     <tbody>
-    <!-------- INPUT DARI controller fotorekap bagian try --->
         @foreach($datarekapnilai as $ds)
         <tr>
             <td>
                 @if($ds->foto_kartu_ujian)
-                    <a href="{{ asset('storage/'.$ds->foto_kartu_ujian) }}"target="_blank" >
-                       {{basename($ds->foto_kartu_ujian)}}
-</iframe>
+                    <a href="{{ asset('storage/'.$ds->foto_kartu_ujian) }}" target="_blank">
+                        {{ basename($ds->foto_kartu_ujian) }}
+                    </a>
                 @else
                     <div style="width:100%;height:100%;background:#ccc;"></div>
                 @endif
@@ -331,23 +313,18 @@ function showList(listNumber) {
             <td>
                 @if($ds->foto_kartu_studi)
                     <a href="{{ asset('storage/'.$ds->foto_kartu_studi) }}" target="_blank">
-                       {{basename($ds->foto_kartu_studi)}}
-</a>
+                        {{ basename($ds->foto_kartu_studi) }}
+                    </a>
                 @else
                     <div style="width:100%;height:100%;background:#ccc;"></div>
                 @endif
             </td>
         </tr>
         @endforeach
-
     </tbody>
 </table>
 
 </div>
-</div>
-
-<div id="list2" class="list-content" style="display:none;">
-    <h2>Konten List 2</h2>
 </div>
 
 </div>

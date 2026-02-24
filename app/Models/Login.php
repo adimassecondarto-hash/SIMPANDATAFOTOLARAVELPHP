@@ -10,7 +10,9 @@ class Login extends Model
     // hanya kolom ini yang di izin kan ubah nama user dan input request user yang harus di isi disini
     protected $fillable = [
         'username',
-         
+        'is_locked',
+        'blocked_until',
+        'failed_attempts',
     ];
     
     protected $hidden = [
@@ -22,30 +24,17 @@ class Login extends Model
     protected $guarded = [
         'password',
         'id',
-        'is_locked',
-        'blocked_until',
-        'failed_attempts',
+       
 
     ];
-    public function isAccountLocked()
-    {
-        if ($this->is_locked) {
-            if ($this->blocked_until && now()->lessThan($this->blocked_until)) {
-                return true;
-            }else{
-                $this->is_locked = false;
-                $this->failed_attempts = 0;
-                $this->blocked_until = null;
-                $this->save();
-                return false;
-            }
-           
-            }
-                return false;
-            }
-        
 
-    public function setPasswordAttribute($value)
+    protected $casts = [
+       'blockend_until' => 'datetime',
+    ];
+    
+        
+   // HASH BCRYPT PASSWORD //
+    public function setHashPassword($value)
     {
             $this->attributes['password'] = bcrypt($value);
     }

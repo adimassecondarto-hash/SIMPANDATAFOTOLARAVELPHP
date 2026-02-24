@@ -32,7 +32,7 @@ class DataSemesterController extends Controller
                 return redirect('/datadims/login')->withErrors([
                     'username' => 'Session tidak valid, silahkan login kembali.'
                 ]);
-            }
+            }else{
           
             // 4. ambil data semester user login
             $dataSemester = $user->dataSemester()->get();
@@ -42,7 +42,7 @@ class DataSemesterController extends Controller
 
             // 6. kirim data ke Blade
             return view('datadims.dasboard', compact('dataSemester', 'allUsers', 'username'));
-
+            }
         } catch (Exception $e) {
             \Log::error('Error saat mengakses dashboard: '.$e->getMessage());
 
@@ -60,11 +60,7 @@ class DataSemesterController extends Controller
             return redirect('/datadims/login');
         }
        
-        $request->validate([
-            'nama' => 'required|string|max:255',
-            'npm'  => 'required|string|max:50',
-            'foto_semester' => 'required|mimes:pdf|max:51200'
-        ]);
+        $this->validasidata($request);
 
         $username = $request->session()->get('username');
         $user = Login::where('username', $username)->first();
@@ -91,4 +87,12 @@ class DataSemesterController extends Controller
         return back()->withErrors(['error'=>'Gagal tambah data']);
     }
 }
+private function validasidata($request) 
+    {
+     $request->validate([
+            'nama' => 'required|string|max:255',
+            'npm'  => 'required|string|max:50',
+            'foto_semester' => 'required|mimes:pdf|max:51200'
+        ]);
+    }
 }

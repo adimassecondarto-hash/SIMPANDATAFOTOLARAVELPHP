@@ -22,19 +22,18 @@ class FotoRekapDanUjianController extends Controller
     }
 
     $user = Login::where('username', $username)->first();
-
-    if (!$user) {
-        $request->session()->forget('username');
+     // Ambil semua data semester + relasi rekap studi (hasManyThrough) dari models lalu  kirim ke blade foreach //
+    // cek eror juga pada data semester // 
+    if ($user) {
+         $dataSemester = $user->dataSemester()->with('dataRekapDanStudi')->get();
+         $datarekapnilai = $dataSemester->pluck('dataRekapDanStudi')->flatten();
+         return view('datadims.dasboarddua', compact('datarekapnilai', 'username'));
+    }else{
+         $request->session()->forget('username');
         return redirect('/datadims/login')->withErrors([
             'username' => 'Session tidak valid, silahkan login kembali.'
         ]);
     }
-    // Ambil semua data semester + relasi rekap studi (hasManyThrough) kirim ke blade foreach //
-    // cek eror juga pada data semester // 
-        $dataSemester = $user->dataSemester()->with('dataRekapDanStudi')->get();
-        $datarekapnilai = $dataSemester->pluck('dataRekapDanStudi')->flatten();
-    return view('datadims.dasboarddua', compact('datarekapnilai', 'username'));
-
 
     } catch (\Exception $e) {
         \Log::error('Error ambil data rekap nilai: '.$e->getMessage());
@@ -47,20 +46,14 @@ class FotoRekapDanUjianController extends Controller
     public function rekapstudidanujian(Request $request)
     {
         try {
-            // Validasi file upload yang di input //
-            $request->validate([
-                'foto_kartu_studi' => 'required|mimes:pdf|max:51200',
-                'foto_kartu_ujian' => 'required|mimes:pdf|max:51200'
-            ]);
+           $this->validasitipegambar($request);
             // ambil session buat upload studi //
-            $username = $request->session()->get('username');
-            $user = Login::where('username', $username)->first();
+            $pengguna = $request->session()->get('username');
+            $user = Login::where('username', $pengguna)->first();
             
-            /// user redirect ke login juga //
-            if (!$user) {
-                return redirect('/datadims/login');
-            }
-            // diambil dari models datarekapstudi //
+            /// user isi data dulu baru redirect ke login juga //
+            if($user) {
+             // diambil dari models datarekapstudi //
             $fotokartudanrekapstudi = $user->dataSemester()->latest()->first();
             $semester = $fotokartudanrekapstudi;
 
@@ -79,13 +72,18 @@ class FotoRekapDanUjianController extends Controller
                 'foto_kartu_studi' => $pathStudi,
                 'foto_kartu_ujian' => $pathUjian
             ]);
-
             return redirect()->back()->with('success', 'Data berhasil ditambahkan');
+        }else{
+           return redirect('/datadims/login');
+        }
+
+           
 
         } catch (Exception $e) {
             // digunakan untuk cek error //
             // cek error di log.laravel pada user //
             if (isset($user)){
+    
                  \Log::info('eror pada redirect login:' . $fotokartudanrekapstudi);
                 \Log::info('eror redirect' . $user->username . ':' . $user->id);
             
@@ -94,7 +92,6 @@ class FotoRekapDanUjianController extends Controller
                 \Log::error('gagal input data pada rekap studi', $e->getMessage());
                 return back()->withErrors(['error' => 'Tidak ada data semester untuk user ini']);
             }
-
             if($pathUjian){
                 \Log::error('Gagal upload foto_kartu_studi: '.$e->getMessage());
                 return back()->withErrors(['error' => 'gagal upload foto kartu ujian']);
@@ -111,6 +108,21 @@ class FotoRekapDanUjianController extends Controller
             
             \Log::error('Error rekap studi & ujian: ' . $e->getMessage());
             return back()->withErrors(['error' => 'Gagal tambah data']);
+
+            
         }
     }
+    private function validasitipegambar($request)
+    {
+        // Validasi file upload yang di input //
+            $request->validate([
+                'foto_kartu_studi' => 'required|mimes:pdf|max:51200',
+                'foto_kartu_ujian' => 'required|mimes:pdf|max:51200'
+            ]);
+            
+    }
+    
+    
+
+
 }

@@ -4,13 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard</title>
-
+<!-- Material Design Iconic Font -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/material-design-iconic-font@2.2.0/dist/css/material-design-iconic-font.min.css">
 <style>
+@import url('https://fonts.googleapis.com/css?family=Roboto:300,400,400i,500');
 *{
+    font-family:'Roboto',sans-serif;
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family:Arial,sans-serif;
 }
 
 /* ================= HEADER ================= */
@@ -48,15 +50,21 @@
     cursor:pointer;
     transition:all 0.3s ease;
     position:relative;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
 }
 
 .sidebar li a {
-    display: block;
+    display: flex;
+    align-items: center;
     width: 100%;
     height: 100%;
     padding: 20px 10px; /* klik area lebih luas */
     color: inherit;
     text-decoration: none;
+    gap: 10px; /* jarak icon dan teks */
 }
 
 /* Hover effect */
@@ -92,10 +100,9 @@
     flex: 1;
     background: #f2f2f2;
     padding: 40px;
-    overflow-y: auto; /* pastikan scroll muncul vertikal */
+    overflow-y: auto;
     overflow-x: hidden;
 }
-
 
 .box{
     background:#d9d9d9;
@@ -131,7 +138,7 @@
 .left-form input{
     width:300px;
     padding:10px;
-    background:#d3d3d3;
+    background: #ffffffff;;
     border:none;
 }
 
@@ -156,7 +163,6 @@
 .upload-title{font-weight:bold;}
 
 /* ================= TABEL ================= */
-
 .data-table{
     width:100%;
     border-collapse:collapse;
@@ -165,11 +171,11 @@
 
 .data-table th,
 .data-table td{
-    border:2px solid #999;
+    border:2px solid #000000ff;
 }
 
 .data-table th{
-    background:#c0c0c0;
+    background:#00fbffff;
     text-align:center;
     font-weight:bold;
     padding:20px;
@@ -205,24 +211,32 @@
 
 <script>
 function showList(listNumber) {
+    // sembunyikan semua konten
     document.querySelectorAll('.list-content')
         .forEach(div => div.style.display = 'none');
 
+    // tampilkan konten yang dipilih
     document.getElementById('list'+listNumber)
         .style.display = 'block';
 
+    // hapus active semua sidebar
     document.querySelectorAll('.sidebar li')
         .forEach(li => li.classList.remove('active'));
 
+    // beri active ke yang dipilih
     document.getElementById('sidebar-list'+listNumber)
         .classList.add('active');
-    document.querySelectorAll('.sidebar li a').forEach(a => {
-    a.addEventListener('click', function() {
-        document.querySelectorAll('.sidebar li').forEach(li => li.classList.remove('active'));
-        this.parentElement.classList.add('active');
-    });
-});    
 }
+
+// klik menu
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.sidebar li a').forEach(a => {
+        a.addEventListener('click', function() {
+            document.querySelectorAll('.sidebar li').forEach(li => li.classList.remove('active'));
+            this.parentElement.classList.add('active');
+        });
+    });
+});
 </script>
 
 </head>
@@ -244,17 +258,17 @@ function showList(listNumber) {
 <!-- ================= SIDEBAR ================= -->
 <div class="sidebar">
    <ul>
-        <li class="{{ Route::currentRouteName() == 'dasboard' ? 'active' : '' }}">
-            <a href="{{ route('dasboard') }}" 
-               style="color:inherit;text-decoration:none;display:block;">
-               nyimpen kartu hasil studi
+        <li class="{{ Route::currentRouteName() == 'dasboard' ? 'active' : '' }}" id="sidebar-list1">
+            <a href="{{ route('dasboard') }}">
+                <i class="zmdi zmdi-book"></i> <!-- Icon buku -->
+                nyimpen kartu hasil studi
             </a>
         </li>
 
-        <li class="{{ Route::currentRouteName() == 'dasboarddua' ? 'active' : '' }}">
-            <a href="{{ route('dasboarddua') }}" 
-               style="color:inherit;text-decoration:none;display:block;">
-               nyimpen rekapstudi dan kartuujian
+        <li class="{{ Route::currentRouteName() == 'dasboarddua' ? 'active' : '' }}" id="sidebar-list2">
+            <a href="{{ route('dasboarddua') }}">
+                <i class="zmdi zmdi-view-list"></i> <!-- Icon list -->
+                nyimpen rekapstudi dan kartuujian
             </a>
         </li>
     </ul>
@@ -322,10 +336,6 @@ function showList(listNumber) {
 </table>
 
 </div>
-</div>
-
-<div id="list2" class="list-content" style="display:none;">
-    <h2>Konten List 2</h2>
 </div>
 
 </div>
